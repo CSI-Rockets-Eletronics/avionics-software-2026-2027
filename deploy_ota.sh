@@ -14,7 +14,9 @@ echo "#define OTA_VERSION \"$VERSION\"" > main/include/ota_version.h
 # Build and copy the binary to the remote assets directory
 source activate
 idf.py build
-scp build/avionics-software-2024-2025.bin $REMOTE_HOST:$REMOTE_ASSETS_DIR/program.bin.tmp
+# Binary name comes from project() in CMakeLists.txt
+PROJECT_NAME=$(sed -n 's/^project(\([^)]*\)).*/\1/p' CMakeLists.txt)
+scp build/$PROJECT_NAME.bin $REMOTE_HOST:$REMOTE_ASSETS_DIR/program.bin.tmp
 
 # Atomically switch the program.bin file and update version.txt
 ssh $REMOTE_HOST "mv $REMOTE_ASSETS_DIR/program.bin.tmp $REMOTE_ASSETS_DIR/program.bin && \

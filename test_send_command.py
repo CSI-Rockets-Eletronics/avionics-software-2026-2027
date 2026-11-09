@@ -7,8 +7,12 @@ Usage:
     python test_send_command.py <COM_PORT> <COMMAND_NUMBER>
 
 Example:
-    python test_send_command.py COM8 0   # Send RESTART command
-    python test_send_command.py COM8 2   # Send STATE_STANDBY command
+    python test_send_command.py COM8 STATE_STANDBY   # by name (preferred)
+    python test_send_command.py COM8 2               # by number (STATE_STANDBY)
+    python test_send_command.py COM8 RESTART --baud 115200
+
+The serial link to the Pi (Serial2, pins RX=18 / TX=8) runs at 230400 baud,
+which is the default here. Numbers must match FsCommand in main/include/packets.h.
 """
 
 import serial
@@ -16,23 +20,27 @@ import struct
 import sys
 import time
 
-# FsCommand enum values (must match packets.h)
+# FsCommand enum values (must match enum class FsCommand in main/include/packets.h)
 FS_COMMANDS = {
-    "RESTART": 0,
-    "RECALIBRATE_TRANSDUCERS": 1,
-    "STATE_ABORT": 2,
-    "STATE_STANDBY": 3,
-    "STATE_CUSTOM": 4,
-    "STATE_GN2_STANDBY": 5,
-    "STATE_GN2_FILL": 6,
-    "STATE_GN2_PULSE_FILL_A": 7,
-    "STATE_GN2_PULSE_FILL_B": 8,
-    "STATE_GN2_PULSE_FILL_C": 9,
-    "STATE_FIRE": 10,
-    "STATE_FIRE_MANUAL_PRESS_PILOT": 11,
-    "STATE_FIRE_MANUAL_DOME_PILOT_CLOSE": 12,
-    "STATE_FIRE_MANUAL_IGNITER": 13,
-    "STATE_FIRE_MANUAL_RUN": 14,
+    "STATE_CUSTOM": 0,
+    "STATE_ABORT": 1,
+    "STATE_STANDBY": 2,
+    "STATE_GN2_STANDBY": 3,
+    "STATE_GN2_FILL": 10,
+    "STATE_GN2_PULSE_FILL_A": 11,
+    "STATE_GN2_PULSE_FILL_B": 12,
+    "STATE_GN2_PULSE_FILL_C": 13,
+    "STATE_ENGINE_PRIME": 19,
+    "STATE_FIRE": 20,
+    "STATE_FIRE_MANUAL_PRESS_PILOT": 21,
+    "STATE_FIRE_MANUAL_DOME_PILOT_CLOSE": 22,
+    "STATE_FIRE_MANUAL_IGNITER": 23,
+    "STATE_FIRE_MANUAL_RUN": 24,
+    "EREG_CLOSED": 30,
+    "EREG_STAGE_1": 31,
+    "EREG_STAGE_2": 32,
+    "RECALIBRATE_TRANSDUCERS": 100,
+    "RESTART": 110,
 }
 
 # Packet delimiters (must match utils.h)
@@ -59,7 +67,7 @@ def create_fs_command_packet(command_value):
     )
     return packet
 
-def send_command(port, command_value, baud=115200):
+def send_command(port, command_value, baud=230400):
     """Send FsCommandPacket to ESP32 via serial."""
     try:
         # Open serial port
@@ -110,12 +118,19 @@ def main():
 
     port = sys.argv[1]
 
+    baud = 230400
+    if "--baud" in sys.argv:
+        baud = int(sys.argv[sys.argv.index("--baud") + 1])
+
     # Parse command (accept number or name)
     command_arg = sys.argv[2]
     if command_arg.isdigit():
         command_value = int(command_arg)
         # Find command name for display
-        command_name = next((name for name, val in FS_COMMANDS.items() if val == command_value), "UNKNOWN")
+        command_name = next((name for name, val in FS_COMMANDS.items() if val == command_value), None)
+        if command_name is None:
+            print(f"Error: {command_value} is not a valid FsCommand number")
+            sys.exit(1)
     else:
         command_name = command_arg.upper()
         if command_name not in FS_COMMANDS:
@@ -127,7 +142,7 @@ def main():
         command_value = FS_COMMANDS[command_name]
 
     print(f"Sending command: {command_name} (value={command_value})")
-    send_command(port, command_value)
+    send_command(port, command_value, baud)
 
 if __name__ == "__main__":
     main()
