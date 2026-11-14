@@ -139,6 +139,14 @@ class DevFsRelays : public Device {
                 break;
             case FsCommand::STATE_ABORT:
                 cur_state = FsState::ABORT;
+                // SAFETY: ABORT wins over manual relay control. Clear the
+                // manual overrides so UpdateRelayStates() leaves only
+                // depress open. They stay cleared after ABORT; reopening a
+                // valve needs a new STATE_CUSTOM command.
+                manual_gn2_drain = false;
+                manual_gn2_fill = false;
+                manual_lox_fill = false;
+                manual_lox_disconnect = false;
                 break;
             case FsCommand::STATE_STANDBY:
                 cur_state = FsState::STANDBY;
