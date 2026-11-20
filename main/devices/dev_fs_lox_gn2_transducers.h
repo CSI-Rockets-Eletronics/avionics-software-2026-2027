@@ -40,7 +40,7 @@ class DevFsLoxGn2Transducers : public Device {
         GAIN_ONE,
         true,
         50,
-        250,
+        375,
     };
     
 
