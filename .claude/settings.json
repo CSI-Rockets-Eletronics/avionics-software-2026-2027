@@ -1,0 +1,8 @@
+{
+  "hooks": {
+    "preToolUse": {
+      "command": "node",
+      "args": [".claude/hooks/check-protected-files.js"]
+    }
+  }
+}

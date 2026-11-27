@@ -2,7 +2,7 @@ Use `deploy_ota.sh` to build and deploy binary to the OTA server. You will need
 to define the `csiwiki` SSH host to point to the CSI Wiki server in your
 `~/.ssh/config`. The script will generate the file `main/include/ota_version.h`.
 
-First, follow the steps to install the ESP-IDF Extension for VS Code, found at this git repo: https://github.com/espressif/vscode-esp-idf-extension/blob/master/README.md. Select Express and choose ESP-IDF version 5.5.
+First, follow the steps to install the ESP-IDF Extension for VS Code, found at this git repo: https://github.com/espressif/vscode-esp-idf-extension/blob/master/README.md. Select Express and choose ESP-IDF version 5.1.5.
 
 Before building the project, clone the git submodules via
 
